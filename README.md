@@ -11,7 +11,7 @@ No browser. No SaaS UI limits. Full local control.
 
 ## Quick start
 
-cd /home/akex/Projects/blackbox-raven
+cd /home/xxxxx/Projects/blackbox-raven
 source .venv/bin/activate
 source .env.local
 ./raven.py
