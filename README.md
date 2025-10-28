@@ -1,117 +1,61 @@
-# blackbox-raven
+blackbox-raven
+==============
 
-Local Claude 4.5 operator running fully in a Linux terminal.
+blackbox-raven = lokalny operator Claude 4.5 odpalany w terminalu Linux.
 
-This is not a browser UI or SaaS IDE. You run `./raven.py`, point it at a workspace directory, and it:
-- reads your code / plans (:read_file)
-- generates new files (:write_file)
-- writes them directly to disk in that workspace
-- keeps state across turns
+Rola:
+- rozmawiasz z modelem z konsoli, bez przeglądarki
+- dajesz mu kontekst plików / katalogów z wybranego workspace
+- prosisz go o wygenerowanie pełnych plików kodu
+- raven.py zapisuje te pliki fizycznie na dysk w tym workspace
 
-All using your Anthropic API key. No copy/paste.
+Nie kopiujesz ręcznie kodu. Nie wklejasz do edytora. On pisze, plik powstaje.
 
-## Why this exists
+Kluczowe komendy w raven.py:
+- :use <name>        -> wybiera / tworzy workspace w workspaces/<name>
+- :read_file <path>  -> ładuje plik albo cały katalog z workspace do kontekstu AI
+- :write_file <path> -> AI generuje finalną zawartość pliku i raven.py zapisuje ten plik
+- :ask               -> tryb promptu wielolinijkowego, kończysz wpisując :end
+- :save / :load      -> zapis / przywrócenie historii czatu
 
-Normal "AI coding assistants" make you:
-- paste context into a web chat
-- manually copy code back into files
-- hope it doesn't leak private data
+Workflow, real case:
+1. :use archon2
+2. :read_file prompt_archon2.0.txt
+3. :write_file api/main.py
+4. :write_file core/state.py
+5. :write_file core/planner.py
 
-blackbox-raven flips that:
-- You decide which workspace is active
-- You choose what files to inject
-- Claude 4.5 writes full-source files straight into that workspace on your machine
+Ten flow wygenerował drugi projekt: "archon2".
 
-You stay air-gapped. You own output.
+archon2
+-------
 
-## Core commands inside raven.py
+archon2 (public repo: github.com/Inthrabachlej/archon2) to FastAPI backend, który:
+- ma endpointy /health i /build
+- trzyma stan buildów projektów (projects/<name>/state)
+- ma planner, który z opisu typu "blog API z auth i SQLite" robi strukturę modułów i zadań
 
-- :use <name>  
-  Create / switch active workspace under workspaces/<name>.  
-  Example: :use archon2
+archon2 został fizycznie wygenerowany przez blackbox-raven komendami :write_file. Prawie bez ręcznego pisania kodu.
 
-- :read_file <path>  
-  Inject a file or a whole directory tree from the active workspace into Claude context.  
-  Works on folders. Recurses and shows file tree + file contents.
+Jak uruchomić blackbox-raven lokalnie:
+1. python3 -m venv .venv
+2. source .venv/bin/activate
+3. pip install -r requirements.txt
+4. echo 'ANTHROPIC_API_KEY=sk-ant-...' > .env.local
+5. source .env.local
+6. ./raven.py
 
-- :write_file <path>  
-  Opens a spec prompt. You describe what should exist in that file.  
-  Claude returns complete file content.  
-  raven.py writes that file to disk.
+Bez przeglądarki. Bez wysyłania całego katalogu źródeł na zewnętrzny serwer. Ty decydujesz który workspace widzi model.
 
-- :ask  
-  Multiline prompt mode. You can paste long spec / architecture.  
-  Finish by typing :end on its own line.
+.gitignore blokuje:
+- .env.local
+- workspaces/
+- sessions/
+- venv/.venv
+- __pycache__
 
-- :save / :load  
-  Persist / restore chat history to sessions/active_session.json.
+To repo + archon2 pokazują stack:
+- narzędzie operacyjne AI (blackbox-raven)
+- backend orkiestrujący projekt i stan buildów (archon2)
 
-## Workflow
-
-Real flow actually used:
-
-:use archon2  
-:read_file prompt_archon2.0.txt  
-:write_file api/main.py  
-:write_file core/state.py  
-:write_file core/planner.py  
-
-This produced a new project (archon2) on disk with:
-- FastAPI service
-- state manager with timestamped per-project snapshots
-- planner that turns plain English description into a structured build plan
-- requirements.txt
-- README.md
-
-Then that workspace was pushed as its own repo.
-
-## Related repo: archon2
-
-archon2 is public here:  
-github.com/Inthrabachlej/archon2
-
-What archon2 is:
-- A code orchestration API generated using blackbox-raven.
-- Exposes FastAPI endpoints like /health and /build.
-- Tracks build state per project under projects/<name>/state.
-- A planner module that takes a high-level description of a service (ex: "blog API with auth, posts, SQLite") and turns it into a task/module breakdown.
-
-Key files in archon2:
-- api/main.py
-- core/state.py
-- core/planner.py
-- requirements.txt
-- README.md
-
-This is not demo CRUD. It's the start of an automated build pipeline.
-
-## Quick start: run blackbox-raven locally
-
-cd /home/akex/Projects/blackbox-raven  
-python3 -m venv .venv  
-source .venv/bin/activate  
-pip install -r requirements.txt  
-
-Create .env.local with your Anthropic key:
-
-echo 'ANTHROPIC_API_KEY=sk-ant-...' > .env.local
-
-Start the operator:
-
-source .env.local  
-./raven.py  
-
-Then inside raven.py:
-
-:use test-workspace  
-:write_file demo.py  
-
-Describe the file you want. It writes demo.py to disk.
-
-## Security / keys
-
-- .env.local is gitignored.
-- Workspaces are local folders under workspaces/.
-- Only files you explicitly :read_file are injected into model context.
-
-You control exposure. You control output. No browser session needed.
+To nie jest "hello world". To jest pipeline do generowania i składania backendu.
