@@ -1,0 +1,12 @@
+# venv
+.venv/
+
+# API keys / local env
+.env.local
+
+# session state / chat logs
+sessions/
+
+# __pycache__ etc
+__pycache__/
+*.pyc
