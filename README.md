@@ -105,7 +105,7 @@ sudo apt update
 sudo apt install -y python3 python3-venv python3-pip git
 
 # 2. clone
-cd /home/akex/Projects
+cd /home/xxxx/Projects
 git clone https://github.com/Inthrabachlej/blackbox-raven.git
 cd blackbox-raven
 
