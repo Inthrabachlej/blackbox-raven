@@ -1,9 +1,13 @@
-__pycache__/
-*.pyc
 .env
 .env.local
 .venv/
 venv/
-sessions/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
 workspaces/
+sessions/
 *.log
+.DS_Store
