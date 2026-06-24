@@ -1,7 +1,6 @@
-blackbox-raven
-==============
+# blackbox-raven
 
-blackbox-raven is a local AI operator for Claude 4.5 that runs fully in a Linux terminal.
+Local AI terminal operator for Claude — inject project files, generate complete source files to disk, and persist session state across runs.
 
 **What it does**
 
