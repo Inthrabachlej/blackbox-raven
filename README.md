@@ -85,7 +85,7 @@ This produced a working codebase called `archon2`.
 - is ready to run with `uvicorn`.
 
 `archon2` lives in its own public repo:
-`github.com/Inthrabachlej/archon2`
+`github.com/alexbachlej/archon2`
 and it was generated almost entirely through `:write_file`, not manual typing.
 
 This proves blackbox-raven is not theoretical.  
@@ -105,7 +105,7 @@ sudo apt install -y python3 python3-venv python3-pip git
 
 # 2. clone
 cd /home/xxxx/Projects
-git clone https://github.com/Inthrabachlej/blackbox-raven.git
+git clone https://github.com/alexbachlej/blackbox-raven.git
 cd blackbox-raven
 
 # 3. virtual environment
