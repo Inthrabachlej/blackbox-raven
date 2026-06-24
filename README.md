@@ -1,5 +1,7 @@
 # blackbox-raven
 
+[![CI](https://github.com/alexbachlej/blackbox-raven/actions/workflows/ci.yml/badge.svg)](https://github.com/alexbachlej/blackbox-raven/actions/workflows/ci.yml)
+
 Local AI terminal operator for Claude — inject project files, generate complete source files to disk, and persist session state across runs.
 
 **What it does**
