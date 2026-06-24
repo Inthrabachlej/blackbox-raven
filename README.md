@@ -2,6 +2,13 @@
 
 [![CI](https://github.com/alexbachlej/blackbox-raven/actions/workflows/ci.yml/badge.svg)](https://github.com/alexbachlej/blackbox-raven/actions/workflows/ci.yml)
 
+<!-- POSITIONING_NOTE_START -->
+> **Positioning note**
+>
+> blackbox-raven is a small local AI terminal/operator experiment. It is useful as an inspectable side artifact in the controlled AI execution toolchain, not as the flagship project.
+>
+> It explores project-file injection, AI-assisted source generation, and session persistence for local development workflows.
+<!-- POSITIONING_NOTE_END -->
 Local AI terminal operator for Claude — inject project files, generate complete source files to disk, and persist session state across runs.
 
 **What it does**
@@ -125,4 +132,3 @@ echo 'ANTHROPIC_API_KEY=sk-ant-...your_key...' > .env.local
 source .env.local
 chmod +x raven.py
 ./raven.py
-
