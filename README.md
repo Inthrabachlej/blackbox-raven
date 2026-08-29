@@ -9,7 +9,7 @@
 >
 > It explores project-file injection, AI-assisted source generation, and session persistence for local development workflows.
 <!-- POSITIONING_NOTE_END -->
-Local AI terminal operator for Claude — inject project files, generate complete source files to disk, and persist session state across runs.
+Local AI terminal operator for Claude - inject project files, generate complete source files to disk, and persist session state across runs.
 
 **What it does**
 
@@ -19,8 +19,7 @@ Local AI terminal operator for Claude — inject project files, generate complet
 - Saves those generated files directly to disk inside an active workspace.
 - Can persist and reload conversation and planning state across sessions.
 
-This is not "copy a snippet from chat and paste into VS Code".
-This is "describe the module → get a ready file written straight to disk".
+You describe the module; Raven writes the file straight to disk, no copy-paste from chat.
 
 ---
 

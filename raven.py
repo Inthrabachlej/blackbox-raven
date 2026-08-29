@@ -113,15 +113,33 @@ def ask_claude(history, user_msg):
             out_chunks.append(block.text)
     return "\n".join(out_chunks)
 
+def is_contained(target: pathlib.Path, root: pathlib.Path) -> bool:
+    # EN: True if target resolves to root itself or a real descendant of root.
+    #     Resolved-path check, not a string prefix (a prefix check treats
+    #     "workspaces/foo2" as inside "workspaces/foo").
+    # NL: True als target oplost naar root zelf of een echte subdirectory van root.
+    #     Gebaseerd op het opgeloste pad, niet op een string-prefix (een prefix-check
+    #     ziet "workspaces/foo2" ten onrechte als binnen "workspaces/foo").
+    target = target.resolve()
+    root = root.resolve()
+    return target == root or root in target.parents
+
 def make_workspace(name=None):
     # EN: Create or ensure workspace directory. Autoname if nothing passed.
+    #     Rejects names that would resolve outside WORKSPACES_DIR (e.g. "../x",
+    #     an absolute path, or a name containing a path separator).
     # NL: Maakt of controleert de workspace map. Genereert naam automatisch als er geen naam gegeven is.
+    #     Weigert namen die buiten WORKSPACES_DIR zouden vallen (bv. "../x", een
+    #     absoluut pad, of een naam met een padscheidingsteken).
     ensure_core_dirs()
     if name is None or name.strip()=="":
         name = f"proj-{now_stamp()}"
-    ws_path = os.path.join(WORKSPACES_DIR, name)
-    ensure_dir(ws_path)
-    return os.path.abspath(ws_path), name
+    root = pathlib.Path(WORKSPACES_DIR)
+    ws_path = pathlib.Path(WORKSPACES_DIR) / name
+    if not is_contained(ws_path, root):
+        raise ValueError(f"invalid workspace name '{name}': escapes {WORKSPACES_DIR}/")
+    ensure_dir(str(ws_path))
+    return os.path.abspath(str(ws_path)), name
 
 def list_dir_recursive(root_path):
     # EN: Walk a directory tree. Build a readable tree listing and collect text file paths.
@@ -151,9 +169,13 @@ def read_file_or_dir_for_context(ws_path, target_rel):
     # NL: Leest een bestand of map uit de actieve workspace om die in de context te steken.
     target_abs = os.path.abspath(os.path.join(ws_path, target_rel))
 
-    # EN: Security check. Block paths escaping the workspace.
-    # NL: Security check. Blokkeer paden die buiten de workspace gaan.
-    if not target_abs.startswith(ws_path):
+    # EN: Security check. Block paths escaping the workspace. Resolved-path
+    #     containment, not a string prefix (a prefix check would let
+    #     "../<ws_name>-evil" through since it shares the prefix).
+    # NL: Security check. Blokkeer paden die buiten de workspace gaan. Check op
+    #     basis van het opgeloste pad, niet op string-prefix (een prefix-check
+    #     zou "../<ws_name>-evil" toelaten omdat die dezelfde prefix deelt).
+    if not is_contained(pathlib.Path(target_abs), pathlib.Path(ws_path)):
         return f"[SECURITY BLOCKED] path '{target_rel}' is outside workspace."
 
     if os.path.isdir(target_abs):
@@ -209,9 +231,12 @@ def write_file_from_claude(ws_path, dest_rel, instruction, history):
     # NL: Vraagt Claude om de volledige inhoud voor dest_rel te genereren en schrijft die in de workspace.
     dest_abs = os.path.abspath(os.path.join(ws_path, dest_rel))
 
-    # EN: Security check. Block path escape above workspace.
-    # NL: Security check. Blokkeer paden die boven de workspace uitsteken.
-    if not dest_abs.startswith(ws_path):
+    # EN: Security check. Block path escape above workspace. Resolved-path
+    #     containment, not a string prefix (see read_file_or_dir_for_context).
+    # NL: Security check. Blokkeer paden die boven de workspace uitsteken. Check
+    #     op basis van het opgeloste pad, niet op string-prefix (zie
+    #     read_file_or_dir_for_context).
+    if not is_contained(pathlib.Path(dest_abs), pathlib.Path(ws_path)):
         return "[SECURITY BLOCKED] target outside workspace."
 
     parent_dir = os.path.dirname(dest_abs)
@@ -322,11 +347,15 @@ def main():
                 # EN: Switch workspace (or create if missing).
                 # NL: Wissel van workspace (of maak een nieuwe als die nog niet bestaat).
                 parts = user_input.split(maxsplit=1)
-                if len(parts) == 1:
-                    current_ws_path, current_ws_name = make_workspace()
-                else:
-                    wanted = parts[1].strip()
-                    current_ws_path, current_ws_name = make_workspace(wanted)
+                try:
+                    if len(parts) == 1:
+                        current_ws_path, current_ws_name = make_workspace()
+                    else:
+                        wanted = parts[1].strip()
+                        current_ws_path, current_ws_name = make_workspace(wanted)
+                except ValueError as e:
+                    print(f"[SECURITY BLOCKED] {e}")
+                    continue
                 print(f"[workspace active] {current_ws_name} -> {current_ws_path}")
                 continue
 
